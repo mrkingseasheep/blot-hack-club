@@ -20,7 +20,7 @@ let groundRight = [78, 13];
 let capLeft = [56, 51];
 let capRight = [75, 45];
 
-let mushBody = [bt.catmullRom([
+let mushStem = [bt.catmullRom([
   groundLeft,
   [57, 19],
   [58, 39],
@@ -30,7 +30,8 @@ let mushBody = [bt.catmullRom([
   [80, 49],
   capRight,
   [75, 21],
-  groundRight
+  groundRight,
+  groundLeft
 ])];
 
 let capFarLeft = [19, 56];
@@ -45,16 +46,46 @@ let mushCap = [bt.catmullRom([
   [107, 83],
   capFarRight,
   capRight,
+  capLeft,
 ])];
+
+bt.cover(mushCap, mushStem);
 
 let mushGillRing = [bt.catmullRom([
   capFarLeft,
   [57, 61],
   [92, 57],
   capFarRight,
+  [105, 39],
+  [65, 38],
+  [20,46],
+  capFarLeft,
 ])];
 
-finalLines.push(...mushBody, ...mushCap, ...mushGillRing);
+bt.cut(mushGillRing, mushCap);
+bt.resample(mushGillRing, 4);
+
+let gillRing = [];
+let gillCenter = [64, 53];
+for (let i = 0; i < mushGillRing[0].length; ++i) {
+  let [x,y] = mushGillRing[0][i];
+  gillRing.push(bt.catmullRom([
+    gillCenter,
+    [x,y],
+  ]));
+}
+
+
+
+
+
+
+
+
+
+
+
+finalLines.push(...mushStem, ...mushCap, ...mushGillRing, ...gillRing);
 //bt.rotate(finalLines, 45);
 
 drawLines(finalLines);
