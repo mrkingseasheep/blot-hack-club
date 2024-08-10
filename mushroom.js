@@ -8,15 +8,27 @@ const rr = bt.randInRange;
 const rir = bt.randIntInRange;
 // change for more/less spots on mushroom
 const MUSHROOM_SPOTS = 4;
+const GILL_DENSITY = rr(4, 7);
 
-function draw_poly(sides, sideLen = 1) {
+function draw_spot(sides, sideLen = 1) {
   let pen = new bt.Turtle();
   let totalAng = (sides - 2) * 180;
   let angle = totalAng / sides;
   for (let i = 0; i < sides; ++i) {
     pen.forward(sideLen).right(180 - angle);
   }
-  return pen.lines();
+  let shape = pen.lines();
+  let curvedShape = [bt.catmullRom(...shape)];
+
+  let newSpot = [rr(11, 111),rr(60, 100)];
+  bt.translate(curvedShape, newSpot, bt.bounds(curvedShape).cc);
+  bt.resample(curvedShape, 1);
+  const VAR = 7;
+  bt.iteratePoints(curvedShape, ([x,y]) => [x + rr(VAR, VAR), y - rr(VAR, VAR)]);
+  
+  drawLines(curvedShape);
+  return curvedShape;
+  //return pen.lines();
 }
 
 function centerPolylines(polylines, documentWidth, documentHeight) {
@@ -73,7 +85,7 @@ let mushGillRing = [bt.catmullRom([
 
 // change to 2 on final render
 // too resource intensive rn
-bt.resample(mushGillRing, 2);
+bt.resample(mushGillRing, GILL_DENSITY);
 
 let gillRing = [];
 let gillCenter = [64, 50];
@@ -92,18 +104,11 @@ bt.cover(gillRing, mushStem);
 
 let mushCapPatterns = [];
 for (let i = 0; i < MUSHROOM_SPOTS; ++i) {
-  let x = rr(11, 111);
-  let y = rr(60, 111);
-  let newSpot = [
-    [x, y]
-  ];
-  for (let i = 0; i < rir(4, 8); ++i) {
-    x += rr(-5, 5);
-    y += rr(-5, 5);
-    newSpot.push([x, y]);
-  }
-  let spot = [bt.catmullRom(newSpot)];
+  let spot = draw_spot(rir(3, 8), rr(10,15));
+  //bt.catmullRom(spot);
+  //bt.translate(spot, newSpot, bt.bounds(spot).cc);
   //let spot = [bt.catmullRom(draw_poly(3, 100))];
+  drawLines(spot);
   //finalLines.push(...spot);
 }
 
