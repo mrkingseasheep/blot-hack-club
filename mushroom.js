@@ -4,6 +4,10 @@ const HEIGHT = 125;
 setDocDimensions(WIDTH, HEIGHT);
 
 const finalLines = [];
+const rr = bt.randInRange;
+const rir = bt.randIntInRange;
+// change for more/less spots on mushroom
+const MUSHROOM_SPOTS = 4;
 
 function draw_poly(sides, sideLen = 1) {
   let pen = new bt.Turtle();
@@ -15,9 +19,14 @@ function draw_poly(sides, sideLen = 1) {
   return pen.lines();
 }
 
+function centerPolylines(polylines, documentWidth, documentHeight) {
+  const cc = bt.bounds(polylines).cc;
+  bt.translate(polylines, [documentWidth / 2, documentHeight / 2], cc);
+}
+
 let groundLeft = [56, 12];
 let groundRight = [78, 13];
-let capLeft = [56, 51];
+let capLeft = [56, 47];
 let capRight = [75, 45];
 
 let mushStem = [bt.catmullRom([
@@ -58,21 +67,44 @@ let mushGillRing = [bt.catmullRom([
   capFarRight,
   [105, 39],
   [65, 38],
-  [20,46],
+  [20, 46],
   capFarLeft,
 ])];
 
-bt.cut(mushGillRing, mushCap);
-bt.resample(mushGillRing, 4);
+// change to 2 on final render
+// too resource intensive rn
+bt.resample(mushGillRing, 2);
 
 let gillRing = [];
-let gillCenter = [64, 53];
+let gillCenter = [64, 50];
 for (let i = 0; i < mushGillRing[0].length; ++i) {
-  let [x,y] = mushGillRing[0][i];
+  let [x, y] = mushGillRing[0][i];
   gillRing.push(bt.catmullRom([
     gillCenter,
-    [x,y],
+    [(x + gillCenter[0]) / 2 + rr(-0.3, 0.3), (y + gillCenter[1]) / 2 + rr(-0.3, 0.3)],
+    [x, y],
   ]));
+}
+
+bt.cut(mushGillRing, mushCap);
+bt.cut(gillRing, mushCap);
+bt.cover(gillRing, mushStem);
+
+let mushCapPatterns = [];
+for (let i = 0; i < MUSHROOM_SPOTS; ++i) {
+  let x = rr(11, 111);
+  let y = rr(60, 111);
+  let newSpot = [
+    [x, y]
+  ];
+  for (let i = 0; i < rir(4, 8); ++i) {
+    x += rr(-5, 5);
+    y += rr(-5, 5);
+    newSpot.push([x, y]);
+  }
+  let spot = [bt.catmullRom(newSpot)];
+  //let spot = [bt.catmullRom(draw_poly(3, 100))];
+  //finalLines.push(...spot);
 }
 
 
@@ -84,8 +116,8 @@ for (let i = 0; i < mushGillRing[0].length; ++i) {
 
 
 
-
 finalLines.push(...mushStem, ...mushCap, ...mushGillRing, ...gillRing);
+centerPolylines(finalLines, WIDTH, HEIGHT);
 //bt.rotate(finalLines, 45);
 
 drawLines(finalLines);
